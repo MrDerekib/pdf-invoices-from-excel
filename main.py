@@ -1,5 +1,7 @@
 import pandas as pd
 import glob
+from fpdf import FPDF
+from pathlib import Path
 
 #  pandas needs openpyxl as optional package (no need to import)
 
@@ -10,4 +12,14 @@ print(filepaths)
 
 for filepath in filepaths:
     df = pd.read_excel(filepath, sheet_name="Sheet 1")
-    print(df)
+    #  print(df)
+    pdf = FPDF(orientation="P", unit="mm", format="A4")
+    pdf.add_page()
+    print(filepath)
+    filename = Path(filepath).stem
+    print(filename)
+    invoice_number = filename.split("-")[0]
+    pdf.set_font(family="Times", size=16, style="B")
+    pdf.cell(w=50, h=8, text=f"Invoice #{invoice_number}")
+    pdf.output(f"PDFs/{filename}.pdf")
+
