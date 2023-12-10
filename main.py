@@ -8,12 +8,11 @@ from pathlib import Path
 
 filepaths = glob.glob("invoices/*xlsx")
 
-print(filepaths)
-
 for filepath in filepaths:
     pdf = FPDF(orientation="P", unit="mm", format="A4")
     pdf.add_page()
 
+    #  Add header and logo of the company
     pdf.image("logo.png", h=10)
     pdf.set_font("Times", size=25, style="B")
     with pdf.local_context(text_mode="STROKE", line_width=1):
@@ -26,21 +25,19 @@ for filepath in filepaths:
     pdf.cell(w=30, h=5, text="Spain", new_x="LMARGIN", new_y="NEXT")
     pdf.ln(20)
 
-    print(filepath)
+    #  Split the filename to extract date an invoice_number
     filename = Path(filepath).stem
-    print(filename)
     invoice_number, invoice_date = filename.split("-")
 
     pdf.set_font(family="Times", size=16, style="B")
     pdf.cell(w=50, h=8, text=f"Invoice #{invoice_number}", new_x="LMARGIN", new_y="NEXT")
-
     pdf.cell(w=50, h=8, text=f"Date: {invoice_date}", new_x="LMARGIN", new_y="NEXT")
 
+    # read excel and save to dataframe
     df = pd.read_excel(filepath, sheet_name="Sheet 1")
 
-    #  Add table header
+    #  Add table header with blank spaces.
     columns = list(df.columns)
-    print(columns[0].replace("_", " "))
     columns = [item.replace("_", " ").title() for item in columns]
 
     pdf.set_font(family="Times", size=10, style="B")
@@ -62,7 +59,6 @@ for filepath in filepaths:
         pdf.cell(w=20, h=8, align="C", text=str(row["total_price"]), border=1, new_x="LMARGIN", new_y="NEXT")
 
     # calculate total_sum
-    total_sum = 0
     total_sum = df["total_price"].sum()
 
     # blank row for total_sum
@@ -74,22 +70,11 @@ for filepath in filepaths:
     pdf.cell(w=30, h=8, border=1)
     pdf.cell(w=20, h=8, align="C", text=str(total_sum), border=1, new_x="LMARGIN", new_y="NEXT")
 
+    # Add a big text outside the table with the total_sum
     pdf.set_font(family="Times", size=16)
     pdf.set_text_color(0, 0, 0)
     pdf.ln()
-    pdf.cell(w=200, h=8, align="C", text=f"Total price is {total_sum} Euros (TAX INCLUDED)", new_x="LMARGIN", new_y="NEXT")
-
-    # pdf.set_font(family="Times", size=14, style="B")
-
-
-
-    # pdf.cell(w=30, h=50, text="Fake company \\n Fake street \\n fake zip code", border=1)
-    # pdf.ln()
-    # pdf.cell(w=30, h=8, text="Fake company")
-    # pdf.ln()
-    # pdf.cell(w=30, h=8, text="Fake company")
-
-
+    pdf.cell(w=200, h=8, align="C", text=f"Total price is {total_sum} Euros (TAX INCLUDED)",
+             new_x="LMARGIN", new_y="NEXT")
 
     pdf.output(f"PDFs/{filename}.pdf")
-
